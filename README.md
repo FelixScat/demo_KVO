@@ -1,10 +1,10 @@
-Key-Value Observing 键值观察 ，是一种设计模式观察者模式的实现
+# Key-Value Observing
 
-官方定义
+键值观察，是设计模式中观察者模式的实现
 
 > 键值观察提供了一种机制，允许对象通知其他对象的特定属性的更改。它对应用程序中模型和控制器层之间的通信特别有用。（在OS X中，控制器层绑定技术严重依赖于键值观察。）控制器对象通常观察模型对象的属性，视图对象通过控制器观察模型对象的属性。然而，另外，模型对象可以观察其他模型对象（通常用于确定从属值何时改变）或甚至自身（再次确定从属值何时改变）。
 
-先看下使用KVO的姿势
+## 使用KVO
 
 Xcode -> New -> MacOS -> CommandLine 新建工程，创建Person类
 
@@ -118,11 +118,11 @@ FOUNDATION_EXPORT NSKeyValueChangeKey const NSKeyValueChangeNotificationIsPriorK
 
 KVO的使用场景有很多，比如Person拥有一个account属性，person需要获取account的变化该如何处理呢，轮训或许是个办法，但是无疑效率低下，而且很不安全，更合理的办法就是使用KVO观察account，在account发生变化时更新。
 
-### 原理
+## 原理
 
 现在我们已经知其然了，但是还不知其所以然。
 
-先说结论
+### 先说结论
 
 1. 系统通过runtime生成继承与被观察者的新类(NSKVONotifying_Person)，对原对象进行isa-swizzing(isa混写)
 2. 根据KVC(键值编码)对对象的keypath进行hock
@@ -174,5 +174,42 @@ Person NSKVONotifying_Person
 
 可以看到输出确实如此
 
+### 如何禁止对象被观察?
+
+我们只要在Person类中重写这个方法，外部就无法对我们Person的属性进行监听啦
+
+```objc
++ (BOOL)automaticallyNotifiesObserversForKey:(NSString *)key {
+    return false;
+}
+```
+
+### 如何单独禁止某个属性被观察？
+
+我们在Person里实现automaticallyNotifiesObserversOf + XXX（属性名），并返回为 false 就可以单独禁止自动为某个属性生成监听了
+
+```objectivec
++ (BOOL)automaticallyNotifiesObserversOfAge {
+    return false;
+}
+```
+
+### 如何自定义KVO触发条件？
+
+有的时候我们只是需要在属性改变为某个状态的时候才需要作出响应，这个时候我们可以在上面方法的基础上自定义发送通知
+
+```objectivec
+- (void)setAge:(NSUInteger)age {
+    if (age > 33) {
+        [self willChangeValueForKey:NSStringFromSelector(@selector(age))];
+    }
+    _age = age;
+    if (age > 33) {
+        [self didChangeValueForKey:NSStringFromSelector(@selector(age))];
+    }
+}
+```
+
+比如在age的setter里面，判断condition，如果达成条件则调用 `willChangeValueForKey` 和 `didChangeValueForKey` 通知外部。
 
 这就是KVO的核心思路了，关于KVC请看[这里](https://k.felixplus.top/kvc/).

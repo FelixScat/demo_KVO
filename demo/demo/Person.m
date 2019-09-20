@@ -29,10 +29,26 @@
     NSLog(@"\nReceving ObserveValueChanged \nObject: %@ OldValue: %@, NewValue: %@",object, change[NSKeyValueChangeOldKey], change[NSKeyValueChangeNewKey]);
 }
 
++ (BOOL)automaticallyNotifiesObserversOfAge {
+    return false;
+}
+
 // 重写以便打印对象的属性
 - (NSString *)description {
     
     return [NSString stringWithFormat:@"- name: %@, age: %ld, friends: %@",self.name, self.age, self.friends];
+}
+
+#pragma mark - Getter & Setter
+
+- (void)setAge:(NSUInteger)age {
+    if (age > 33) {
+        [self willChangeValueForKey:NSStringFromSelector(@selector(age))];
+    }
+    _age = age;
+    if (age > 33) {
+        [self didChangeValueForKey:NSStringFromSelector(@selector(age))];
+    }
 }
 
 @end

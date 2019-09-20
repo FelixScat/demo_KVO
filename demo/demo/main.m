@@ -28,7 +28,7 @@ int main(int argc, const char * argv[]) {
         
         [Alice addObserver:Bob forKeyPath:@"age" options:NSKeyValueObservingOptionOld|NSKeyValueObservingOptionNew context:PersonChangeContext];
         
-        Alice.age = 100;
+        Alice.age = 35;
         
         Class cls1 = object_getClass(Alice);
         
